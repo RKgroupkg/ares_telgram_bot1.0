@@ -11,6 +11,8 @@ import markdown
 from markdown.extensions.nl2br import Nl2BrExtension
 import re
 
+from keep_alive import keep_alive
+
 PASSWORD = "ares100"
 generation_config = {
   "temperature": 1,
@@ -457,6 +459,7 @@ def main() -> None:
     updater.idle()
 
 if __name__ == '__main__':
+    keep_alive()
     main()
 
 
