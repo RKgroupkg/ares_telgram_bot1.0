@@ -1,5 +1,5 @@
 import logging
-from telegram import Update,ChatAction,ReplyKeyboardMarkup, KeyboardButton # version = 12.8
+from telegram import Update,ChatAction,InlineKeyboardMarkup, InlineKeyboardButton # version = 12.8
 from telegram.ext import Updater, MessageHandler, Filters, CallbackContext,CommandHandler,CallbackQueryHandler
 import google.generativeai as genai
 import threading
