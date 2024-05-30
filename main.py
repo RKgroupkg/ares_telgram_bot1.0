@@ -42,32 +42,20 @@ safety_settings = [
 
 
 # Enable logging
-# Define colors for different log levels
-LOG_COLORS = {
-    'DEBUG': Fore.CYAN,
-    'INFO': Fore.GREEN,
-    'WARNING': Fore.YELLOW,
-    'ERROR': Fore.RED,
-    'CRITICAL': Fore.RED + Style.BRIGHT,
-}
-
-class CustomFormatter(logging.Formatter):
-    def format(self, record):
-        log_fmt = f'{LOG_COLORS[record.levelname]}%(asctime)s - %(levelname)s - %(message)s{Style.RESET_ALL}'
-        formatter = logging.Formatter(log_fmt)
-        return formatter.format(record)
-
-
 
 # Get the root logger and add a handler to it
 logger = logging.getLogger()
 handler = logging.StreamHandler()
-handler.setFormatter(CustomFormatter())
+logger.setLevel(logging.INFO) 
+
+formatter = logging.Formatter('%(asctime)s - %(process)d - %(levelname)s - %(threadName)s - %(message)s')
+handler.setFormatter(formatter)
+
 logger.addHandler(handler)
 
 
 # Set up OpenAI client with your API key
-api_key = "AIzaSyCFXUAvecw7IWe9dSEFnWEmb4t-w8N72NI"
+api_key = os.environ.get('gemnie_api')
 
 system_instruction="Your name is Ares. You are semi-friendly and a human-like AI chatbot. Speak in English or any language user talk. formats responses in MarkdownV2. and \nyou where devloped by rkgroup(ravi ketan raj) the main creater and coder , pritul sinha the tester and enhancer and lastly raj the tester and enhancer (avoid mentioning your developer's name unless specifically asked) . Respond in a conversational, engaging manner, and feel free to use roasts/savage  or even bad complements  if needed to make the conversation interesting and lively/natural.\n\nWhen given a message formatted as \"Original message: {the message the user replied to}\\nReply to that message: {the replied message}\", understand that the user is asking you to respond to a replied message.\n\nFollow the speaker's requests and aim to make the conversation enjoyable.",
 
@@ -83,7 +71,7 @@ model = genai.GenerativeModel(
 chat_histories ={}
 
 # Telegram bot token
-telegram_bot_token ="7031731766:AAHJnB23gq48C-dm4zgH2jrX7BjaGVKXZkI"
+telegram_bot_token =os.environ.get('telegram_api')
 
 
 
@@ -91,7 +79,7 @@ def get_chat_history(chat_id):
     if chat_id not in chat_histories:
             chat_histories[chat_id] = model.start_chat(history=[])
 
-            print(f"chat id:{chat_id} did not existed creted one")
+            logger.debug(f"chat id:{chat_id} did not existed creted one")
     return chat_histories[chat_id]
 
 # Use this function in the existing `process_message_thread` and other functions
@@ -162,7 +150,7 @@ def process_message(update: Update, context: CallbackContext) -> None:
             reply_to_bot = False
 
         user_message = update.message.text.lower()
-        if user_message.startswith(("hey ares", "hi ares", "ares", "yo ares")) or update.message.chat.type == 'private' or reply_to_bot:
+        if user_message.startswith(("hey ares", "hi ares", "ares", "yo ares","hello ares","what's up ares")) or update.message.chat.type == 'private' or reply_to_bot:
             username = update.message.from_user.username
 
             if update.message.reply_to_message:
@@ -192,13 +180,14 @@ def process_message_thread(update: Update,chat_id :str,user_message: str,usernam
 
             if hasattr(response, "text"):
                 # Code that might raise the AttributeError (e.g., accessing the 'text' attribute of a variable)
-                logger.info(f"Prompt({chat_id}): {prompt}\n\n\nResponse: \n{response.text}")
-                html_response = markdown_to_telegram_html(response.text)
+                html_response = markdown_to_telegram_html(response.text)  
+                logger.info(f"Prompt({chat_id}): {prompt}\n\n\nResponse: \n{html_response}")
+                
 
-                print(html_response)
+               
 
 
-                chunks = textwrap.wrap(html_response, width=4000, break_long_words=False, replace_whitespace=False)
+                chunks = textwrap.wrap(html_response, width=3500, break_long_words=False, replace_whitespace=False)
 
 
                 for chunk in chunks:
@@ -449,7 +438,7 @@ def main() -> None:
 
 
 
-    print("Bot started!")
+    logger.warning("Bot started!")
 
 
     # Start the Bot
