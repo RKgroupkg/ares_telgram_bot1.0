@@ -184,7 +184,7 @@ def change_prompt(update: Update, context: CallbackContext) -> None:
     """Change the prompt for generating responses."""
     chat_id = update.message.chat_id
     global model
-    new_promt = context.args
+    new_promt = " ".join(context.args)
     logger.info(f"chatId({chat_id}) changed its Promt to :'{new_promt}'")
     if new_promt :
         if new_promt.lower != 'd':
@@ -379,9 +379,9 @@ def history(update: Update, context: CallbackContext) -> None:
                 update.message.reply_text("Invalid chat ID. Please provide a valid integer ID.", parse_mode='html')
                 return
 
-            if args in chat_histories:
+            if arg_chat_id in chat_histories:
                 # If provided chat ID is in active sessions, retrieve its history
-                history_text = f"Chat historyfor chat ID {arg_chat_id}:\n{format_chat_history(chat_histories[args].history)}"
+                history_text = f"Chat historyfor chat ID {arg_chat_id}:\n{format_chat_history(chat_histories[arg_chat_id].history)}"
                 send_message(update,history_text)
             else:
                 update.message.reply_text("Error 404: Chat ID not found.", parse_mode='html')
