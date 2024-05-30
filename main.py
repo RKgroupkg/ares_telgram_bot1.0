@@ -290,7 +290,7 @@ def start_command(update: Update, context: CallbackContext) -> None:
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
 
     # Update handler for button presses (using CallbackQueryHandler)
-    @context.dispatcher.callback_query_handler(run_async=True)
+    @context.dispatcher.message_handler(filters.CallbackQuery)
     def button_callback(update: Update, context: CallbackContext):
         query = update.callback_query
         if query.data == '/help':
