@@ -184,7 +184,8 @@ def change_prompt(update: Update, context: CallbackContext) -> None:
     """Change the prompt for generating responses."""
     chat_id = update.message.chat_id
     global model
-    new_promt = " ".join(context.args)
+    new_promt = context.args
+    logger.info(f"chatId({chat_id}) changed its Promt to :'{new_promt}'")
     if new_promt and new_promt.lower != 'd':
 
         try:
@@ -197,7 +198,7 @@ def change_prompt(update: Update, context: CallbackContext) -> None:
 
             update.message.reply_text(f"The prompt has been successfully changed to: <b>'{new_promt}'</b>", parse_mode='html')
         except Exception as e:
-            update.message.reply_text(f"The prompt has failed to changed <b>error: '{e}'</b>", parse_mode='html')
+            update.message.reply_text(f"The prompt has failed to changed <b>error: '{e}' </b>", parse_mode='html')
 
     elif new_promt.lower == 'd':
              model_temp = genai.GenerativeModel(
