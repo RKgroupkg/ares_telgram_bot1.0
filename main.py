@@ -310,7 +310,7 @@ def start_command(update: Update, context: CallbackContext) -> None:
 
 def clear_history(update: Update, context: CallbackContext) -> None:
     """Clear the chat history for the current chat."""
-     try:
+    try:
         chat_id = update.message.chat_id
         if chat_id in chat_histories:
             # Clear the chat history and start a new one with the default prompt
