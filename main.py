@@ -381,9 +381,8 @@ def history(update: Update, context: CallbackContext) -> None:
             if arg_chat_id in chat_histories:
                 # If provided chat ID is in active sessions, retrieve its history
                 history_text = f"Chat history for chat ID {arg_chat_id}:\n{chat_histories[arg_chat_id].history}"
-                chunks = textwrap.wrap(history_text, width=100 * 4, replace_whitespace=False)  # ~400 characters
-                for chunk in chunks:
-                    update.message.reply_text(chunk, parse_mode='html')
+                history_text = f"Chat historyfor chat ID {arg_chat_id}:\n{format_chat_history(chat_histories[chat_id].history)}"
+                send_message(update,history_text)
             else:
                 update.message.reply_text("Error 404: Chat ID not found.", parse_mode='html')
         else:
