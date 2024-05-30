@@ -187,7 +187,8 @@ def change_prompt(update: Update, context: CallbackContext) -> None:
     new_promt = " ".join(context.args)
     logger.info(f"chatId({chat_id}) changed its Promt to :'{new_promt}'")
     if new_promt :
-        if  context.args[0].strip().lower() == 'd':
+        print(f"arg in lower case :{context.args[0].lower()} is it command? :{context.args[0].lower() == 'd'} ")
+        if  context.args[0].lower() == 'd':
            model_temp = genai.GenerativeModel(
                     model_name="gemini-1.5-pro-latest",
                     safety_settings=safety_settings,
