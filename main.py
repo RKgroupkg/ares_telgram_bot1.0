@@ -140,7 +140,7 @@ def change_prompt(update: Update, context: CallbackContext) -> None:
 
 
 def process_message(update: Update, context: CallbackContext) -> None:
-        if not update.message  # for some weird behaviour of telegram api 
+        if not update.message  
           return
   
         if update.message.reply_to_message:
