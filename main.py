@@ -29,9 +29,11 @@ safety_settings = [
 ]
 
 help_text = """
-<b>This bot is powered by <a href="https://gemini.google.com/">Gemini</a> and is ready to assist you!</b>
+<b>Welcome to Ares, your AI assistant!</b>
 
-<code> By default, the bot (Ares) is a bit cheeky and enjoys playful banter. If you prefer a different style, feel free to customize it!</code>
+<code>Ares is powered by <a href="https://gemini.google.com/">Gemini</a> and is ready to assist you.</code>
+
+By default, Ares is a bit cheeky and enjoys playful banter. If you prefer a different style, feel free to customize it!
 
 <b>How to Use:</b>
 
@@ -39,23 +41,82 @@ Begin your message with <i>Hey Ares</i> or <i>Hi Ares</i>. Keep the conversation
 
 <b>Tailor Your Experience:</b>
 
-* <i>/changeprompt [new prompt]</i>: Give Ares a new personality. Try "Be kind and helpful" or "d" for the default sassy mode.
+* <i>/changeprompt [new prompt]</i>: Customize Ares' personality. Try "Be kind and helpful" or "d" for the default sassy mode.
+
+  Example: <code>/changeprompt Be kind and helpful</code>
+
 * <i>/token</i>: Check how many tokens have been used.
 * <i>/clear_history</i>: Wipe the slate clean and start fresh.
 * <i>/history</i>: ⚠️ Use with caution, as it might crash with long chats.
 
-<b>Admin Commands (password required):</b>
+<b>About Limitations:</b>
 
-* <i>/session [password]</i>: Peek at how many chats are active.
+Being free proved to be very challenging. As Google provided limited quota (system resources) for free, optimistic usage was our priority, but still, there is a limit of 5 requests per minute as a whole. During busy hours, the bot may show out of quota. In such cases, please wait patiently for a few minutes and try again later. ☺️
 
-<i>More exciting features are on the way!</i>
+<b>Error Handling:</b>
 
-**Check Ares' Status:**
+Currently, the error handler is primitive, so some errors may occur randomly. If the error persists, try again later. If the error persists, send an image of the error with the conversation in the bugs topic. It will be tried to fix soon.
 
-<b> You can also check the current status of Ares at this link: <a href="https://stats.uptimerobot.com/o9D5ihvbgK">Ares Status</a> </b>
+<b>Inconsistency:</b>
 
-Have fun chatting with Ares! Make it your own unique conversation.
-  """
+Sometimes the bot may be inconsistent, which may occur due to server restarts or weird prompt changes. Ensure that the prompt change command is clear and precise to the point.
+
+<b>Bot Not Responding/Server Off:</b>
+
+Sometimes the bot may be off due to some issues. In this case, please contact the owner.
+
+<b>Media Support:</b>
+
+Ares can handle various types of media up to a limit of 5MB:
+
+<b>Images:</b>
+- PNG (image/png)
+- JPEG (image/jpeg)
+- WEBP (image/webp)
+- HEIC (image/heic)
+- HEIF (image/heif)
+
+<b>Audio:</b>
+- WAV (audio/wav)
+- MP3 (audio/mp3)
+- AIFF (audio/aiff)
+- AAC (audio/aac)
+- OGG Vorbis (audio/ogg)
+- FLAC (audio/flac)
+
+<b>Video:</b>
+- MP4 (video/mp4)
+- MPEG (video/mpeg)
+- MOV (video/mov)
+- AVI (video/avi)
+- FLV (video/x-flv)
+- MPG (video/mpg)
+- WebM (video/webm)
+- WMV (video/wmv)
+- 3GPP (video/3gpp)
+
+<b>Conversation Flow:</b>
+
+Ares maintains context in conversations, allowing seamless interaction. If chatting in DMs, no need to start with "Hey Ares." Replies to Ares' messages are automatically recognized. In group chats, Ares listens for replies to its messages when starting a new message with "Hey Ares."
+
+<b>Data Persistence:</b>
+
+Ares remembers previous messages, allowing for natural conversation flow. However, older chat history may be forgotten after server restarts.
+
+<b>Better Prompt:</b>
+
+Giving Ares a better prompt enhances its responsiveness and style. Consider prompts that match your preferences or the tone you want Ares to adopt. Aim for prompts that encourage positive, engaging conversations while reflecting your personality or the context of the conversation.
+
+<b>Check Ares' Status:</b>
+
+You can also check the current status of Ares <a href="https://stats.uptimerobot.com/o9D5ihvbgK">here</a>.
+
+<b>Help & Bug Report:</b>
+
+For further assistance or to report bugs, join our official group: <a href="https://t.me/AresChatBotAi">Ares Help & Bug Report</a>.
+
+Have a great chat with Ares!
+"""
 
 # Enable logging
 
