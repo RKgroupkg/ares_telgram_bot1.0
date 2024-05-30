@@ -1,6 +1,6 @@
 import logging
-from telegram import Update,ChatAction,ReplyKeyboardMarkup,KeyboardButton # version = 12.8
-from telegram.ext import Updater, MessageHandler, Filters, CallbackContext,CommandHandler
+from telegram import Update,ChatAction,ReplyKeyboardMarkup, KeyboardButton # version = 12.8
+from telegram.ext import Updater, MessageHandler, Filters, CallbackContext,CommandHandler,CallbackQueryHandler
 import google.generativeai as genai
 import threading
 from colorama import Fore, Style
@@ -142,7 +142,7 @@ def change_prompt(update: Update, context: CallbackContext) -> None:
 def process_message(update: Update, context: CallbackContext) -> None:
         if not update.message:  
           return
-  
+        chat_id = update.message.chat_id
         if update.message.reply_to_message:
             reply_to_bot = (
             update.message.reply_to_message
@@ -281,7 +281,7 @@ Have fun chatting with Ares! Make it your own unique conversation.
 def start_command(update: Update, context: CallbackContext) -> None:
     """Send a concise welcome message with buttons and handle button presses."""
     user = update.effective_user
-    welcome_message = f"Hey {user.username}!  I'm Ares, your AI companion. Ready to chat? "
+    welcome_message = f"Hey {user.username}! I'm Ares, your AI companion. Ready to chat? "
 
     # Create the keyboard layout
     keyboard = [
@@ -289,7 +289,7 @@ def start_command(update: Update, context: CallbackContext) -> None:
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
 
-    # Update handler for button presses
+    # Update handler for button presses (using CallbackQueryHandler)
     @context.dispatcher.callback_query_handler(run_async=True)
     def button_callback(update: Update, context: CallbackContext):
         query = update.callback_query
