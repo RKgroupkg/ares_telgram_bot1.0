@@ -195,8 +195,8 @@ def change_prompt(update: Update, context: CallbackContext) -> None:
                     system_instruction=system_instruction
                     )
     
-                 chat_histories[chat_id] = model_temp_.start_chat(history=[])
-                 update.message.reply_text(f"The prompt has been successfully changed to: <b>'defult'</b>", parse_mode='html')
+           chat_histories[chat_id] = model_temp_.start_chat(history=[])
+           update.message.reply_text(f"The prompt has been successfully changed to: <b>'defult'</b>", parse_mode='html')
     
             
         else:
