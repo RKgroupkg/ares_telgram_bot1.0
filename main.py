@@ -199,8 +199,7 @@ def change_prompt(update: Update, context: CallbackContext) -> None:
         except Exception as e:
             update.message.reply_text(f"The prompt has failed to changed <b>error: '{e}'</b>", parse_mode='html')
 
-    else:
-        if new_promt.lower == 'd':
+    elif new_promt.lower == 'd':
              model_temp = genai.GenerativeModel(
                 model_name="gemini-1.5-pro-latest",
                 safety_settings=safety_settings,
@@ -211,7 +210,7 @@ def change_prompt(update: Update, context: CallbackContext) -> None:
              chat_histories[chat_id] = model_temp_.start_chat(history=[])
              update.message.reply_text(f"The prompt has been successfully changed to: <b>'defult'</b>", parse_mode='html')
 
-        else:
+    else:
             update.message.reply_text(f"Error ! un sufficent info provided", parse_mode='html')
 
 
@@ -269,12 +268,6 @@ def process_message_thread(update: Update,chat_id :str,user_message: str,usernam
                     parse_mode='HTML'
                 )
                 logger.error(f"quato error!\n\nreponse:{response}")
-
-
-
-
-
-
 
 
 
@@ -381,7 +374,7 @@ def history(update: Update, context: CallbackContext) -> None:
             try:
                 arg_chat_id = int(args[0])
             except ValueError:
-                update.message.reply_text("Invalid chat ID. Please provide a valid integer ID.")
+                update.message.reply_text("Invalid chat ID. Please provide a valid integer ID.", parse_mode='html')
                 return
 
             if arg_chat_id in chat_histories:
@@ -391,19 +384,24 @@ def history(update: Update, context: CallbackContext) -> None:
                 for chunk in chunks:
                     update.message.reply_text(chunk, parse_mode='html')
             else:
-                update.message.reply_text("Error 404: Chat ID not found.")
+                update.message.reply_text("Error 404: Chat ID not found.", parse_mode='html')
         else:
             # If no argument is provided, retrieve history for the current session chat
             if chat_id in chat_histories:
-                history_text = f"Chat history:\n{chat_histories[chat_id].history}"
-                chunks = textwrap.wrap(history_text, width=100 * 4, replace_whitespace=False)  # ~400 characters
-                for chunk in chunks:
-                    update.message.reply_text(chunk, parse_mode='html')
+                history_text = f"Chat history:\n{format_chat_history(chat_histories[chat_id].history)}"
+                send_message(update,history_text)
             else:
                 update.message.reply_text("There is no chat history.")
     except Exception as e:
-        update.message.reply_text(f"An error occurred while retrieving the chat history: {e}")
+        update.message.reply_text(f"An error occurred while retrieving the chat history: {e}", parse_mode='html')
         logger.error(f"An error occurred while retrieving the chat history: {e}")
+      
+def format_chat_history(chat_history):
+    formatted_history = ""
+    for message in chat_history:
+        formatted_history += f'<b>{message.role}<b>: <i>{message.parts[0].text}</i>\n'
+    return formatted_history
+
 
 def process_image(update: Update, context: CallbackContext) -> None:
     chat_id = update.message.chat_id
