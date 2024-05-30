@@ -543,7 +543,48 @@ def download_and_process_video(update: Update, context: CallbackContext, media) 
             # Handle errors during cleanup
             update.message.reply_text(f"An error occurred while cleaning up: {e}")
 
+def extract_chat_info(update: Update, context: CallbackContext) -> None:
+    if context.args:
+        try:
+            chat_id = int(context.args[0])
+        except ValueError:
+            update.message.reply_text("Invalid chat ID. Please provide a numeric chat ID.")
+            return
 
+        try:
+            chat = context.bot.get_chat(chat_id)
+        except telegram.error.Unauthorized:
+            update.message.reply_text("I don't have access to this chat. Please ensure the bot is a member of the chat.")
+            return
+        except telegram.error.BadRequest as e:
+            update.message.reply_text(f"Bad request. Error: {e.message}")
+            return
+        except Exception as e:
+            update.message.reply_text(f"Failed to get chat information. Error: {e}")
+            return
+
+        info = {
+            "Chat ID": chat.id,
+            "Chat Type": chat.type,
+            "Title": chat.title,
+            "Username": chat.username,
+            "First Name": chat.first_name,
+            "Last Name": chat.last_name,
+            "Description": chat.description,
+            "Invite Link": chat.invite_link,
+            "Pinned Message": chat.pinned_message.text if chat.pinned_message else None,
+        }
+
+        # Filter out None values
+        filtered_info = {k: v for k, v in info.items() if v is not None}
+
+        # Create a formatted string of the information
+        info_text = "\n".join([f"{key}: {value}" for key, value in filtered_info.items()])
+
+        # Send the information as a message
+        update.message.reply_text(f"Chat Information:\n{info_text}", parse_mode='HTML')
+    else:
+        update.message.reply_text("Please provide a chat ID. Usage: /chatinfo <chat_id>")
 
 def main() -> None:
     logger.info("Bot starting!")
@@ -565,11 +606,13 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CallbackQueryHandler(button))
     dispatcher.add_handler(CommandHandler("history", history))
+                                    
 
-    # Register the help command handler
+    # Register the admin/info command handler
     dispatcher.add_handler(CommandHandler("token", Token))
     dispatcher.add_handler(CommandHandler("session", session_command))
     dispatcher.add_handler(CommandHandler("session_info", session_info_command))
+    dispatcher.add_handler(CommandHandler("cid_info", extract_chat_info))
 
 
     # Register the ChangePrompt command handler
