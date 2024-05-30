@@ -186,30 +186,31 @@ def change_prompt(update: Update, context: CallbackContext) -> None:
     global model
     new_promt = context.args
     logger.info(f"chatId({chat_id}) changed its Promt to :'{new_promt}'")
-    if new_promt and new_promt.lower != 'd':
-
-        try:
-            model_temp_ = genai.GenerativeModel(
-                model_name="gemini-1.5-pro-latest",
-                safety_settings=safety_settings,
-                generation_config=generation_config,
-                system_instruction=new_promt )
-            chat_histories[chat_id] = model_temp_.start_chat(history=[])
-
-            update.message.reply_text(f"The prompt has been successfully changed to: <b>'{new_promt}'</b>", parse_mode='html')
-        except Exception as e:
-            update.message.reply_text(f"The prompt has failed to changed <b>error: '{e}' </b>", parse_mode='html')
-
-    elif new_promt.lower == 'd':
-             model_temp = genai.GenerativeModel(
-                model_name="gemini-1.5-pro-latest",
-                safety_settings=safety_settings,
-                generation_config=generation_config,
-                system_instruction=system_instruction
-                )
-
-             chat_histories[chat_id] = model_temp_.start_chat(history=[])
-             update.message.reply_text(f"The prompt has been successfully changed to: <b>'defult'</b>", parse_mode='html')
+    if new_promt :
+        if new_promt.lower != 'd':
+    
+            try:
+                model_temp_ = genai.GenerativeModel(
+                    model_name="gemini-1.5-pro-latest",
+                    safety_settings=safety_settings,
+                    generation_config=generation_config,
+                    system_instruction=new_promt )
+                chat_histories[chat_id] = model_temp_.start_chat(history=[])
+    
+                update.message.reply_text(f"The prompt has been successfully changed to: <b>'{new_promt}'</b>", parse_mode='html')
+            except Exception as e:
+                update.message.reply_text(f"The prompt has failed to changed <b>error: '{e}' </b>", parse_mode='html')
+    
+        elif new_promt.lower == 'd':
+                 model_temp = genai.GenerativeModel(
+                    model_name="gemini-1.5-pro-latest",
+                    safety_settings=safety_settings,
+                    generation_config=generation_config,
+                    system_instruction=system_instruction
+                    )
+    
+                 chat_histories[chat_id] = model_temp_.start_chat(history=[])
+                 update.message.reply_text(f"The prompt has been successfully changed to: <b>'defult'</b>", parse_mode='html')
 
     else:
             update.message.reply_text(f"Error ! un sufficent info provided", parse_mode='html')
@@ -462,9 +463,13 @@ def Token(update: Update, context: CallbackContext) -> None:
         if arg_chat_id in chat_histories:
             # If provided chat ID is in active sessions, retrieve its token count
             chat_session = chat_histories[arg_chat_id]
-            update.message.reply_text(f'Total tokens used for chat ID {arg_chat_id}: {model.count_tokens(chat_session.history)}', parse_mode='html')
+            if chat_session:
+              update.message.reply_text(f'Total tokens used for chat ID {arg_chat_id}: {model.count_tokens(chat_session.history)}', parse_mode='html')
+            else:
+              update.message.reply_text(f"Total tokens used for chat ID {arg_chat_id}: 00", parse_mode='html')
+            
         else:
-            update.message.reply_text("Error 404: Chat ID not found.")
+            update.message.reply_text("Error 404: Chat ID not found.",parse_mode='html')
     else:
         # If no argument is provided, retrieve token count for the current session chat
         chat_session = get_chat_history(chat_id)
