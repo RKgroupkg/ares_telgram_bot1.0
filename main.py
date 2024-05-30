@@ -379,9 +379,9 @@ def history(update: Update, context: CallbackContext) -> None:
                 update.message.reply_text("Invalid chat ID. Please provide a valid integer ID.", parse_mode='html')
                 return
 
-            if arg_chat_id in chat_histories:
+            if args in chat_histories:
                 # If provided chat ID is in active sessions, retrieve its history
-                history_text = f"Chat historyfor chat ID {arg_chat_id}:\n{format_chat_history(chat_histories[chat_id].history)}"
+                history_text = f"Chat historyfor chat ID {arg_chat_id}:\n{format_chat_history(chat_histories[args].history)}"
                 send_message(update,history_text)
             else:
                 update.message.reply_text("Error 404: Chat ID not found.", parse_mode='html')
@@ -399,7 +399,7 @@ def history(update: Update, context: CallbackContext) -> None:
 def format_chat_history(chat_history):
     formatted_history = ""
     for message in chat_history:
-        formatted_history += f'<b>{message.role}<b>: <i>{message.parts[0].text}</i>\n'
+        formatted_history += f'<b>{message.role}</b>: <i>{message.parts[0].text}</i>\n'
     return formatted_history
 
 
