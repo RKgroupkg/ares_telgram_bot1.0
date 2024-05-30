@@ -40,6 +40,34 @@ safety_settings = [
   },
 ]
 
+help_text = """
+<b>This bot is powered by <a href="https://gemini.google.com/">Gemini</a> and is ready to assist you!</b>
+
+<code> By default, the bot (Ares) is a bit cheeky and enjoys playful banter. If you prefer a different style, feel free to customize it!</code>
+
+<b>How to Use:</b>
+
+Begin your message with <i>Hey Ares</i> or <i>Hi Ares</i>. Keep the conversation in English and avoid overly complex language for the best results.
+
+<b>Tailor Your Experience:</b>
+
+* <i>/changeprompt [new prompt]</i>: Give Ares a new personality. Try "Be kind and helpful" or "d" for the default sassy mode.
+* <i>/token</i>: Check how many tokens have been used.
+* <i>/clear_history</i>: Wipe the slate clean and start fresh.
+* <i>/history</i>: ⚠️ Use with caution, as it might crash with long chats.
+
+<b>Admin Commands (password required):</b>
+
+* <i>/session [password]</i>: Peek at how many chats are active.
+
+<i>More exciting features are on the way!</i>
+
+**Check Ares' Status:**
+
+<b> You can also check the current status of Ares at this link: <a href="https://stats.uptimerobot.com/o9D5ihvbgK">Ares Status</a> </b>
+
+Have fun chatting with Ares! Make it your own unique conversation. 
+  """
 
 # Enable logging
 
@@ -246,67 +274,33 @@ def markdown_to_telegram_html(markdown_text):
 def help_command(update: Update, context: CallbackContext) -> None:
   """Send a well-formatted help message with links to Gemini and Ares status."""
 
-  help_text = """
-<b>This bot is powered by <a href="https://gemini.google.com/">Gemini</a> and is ready to assist you!</b>
-
-<code> By default, the bot (Ares) is a bit cheeky and enjoys playful banter. If you prefer a different style, feel free to customize it!</code>
-
-<b>How to Use:</b>
-
-Begin your message with <i>Hey Ares</i> or <i>Hi Ares</i>. Keep the conversation in English and avoid overly complex language for the best results.
-
-<b>Tailor Your Experience:</b>
-
-* <i>/changeprompt [new prompt]</i>: Give Ares a new personality. Try "Be kind and helpful" or "d" for the default sassy mode.
-* <i>/token</i>: Check how many tokens have been used.
-* <i>/clear_history</i>: Wipe the slate clean and start fresh.
-* <i>/history</i>: ⚠️ Use with caution, as it might crash with long chats.
-
-<b>Admin Commands (password required):</b>
-
-* <i>/session [password]</i>: Peek at how many chats are active.
-
-<i>More exciting features are on the way!</i>
-
-**Check Ares' Status:**
-
-You can also check the current status of Ares at this link: [**<a href="https://stats.uptimerobot.com/o9D5ihvbgK">Ares Status</a>**](https://stats.uptimerobot.com/o9D5ihvbgK)
-
-Have fun chatting with Ares! Make it your own unique conversation. 
-  """
-
   logger.info(f"help command asked by :{update.message.from_user.username}")
   update.message.reply_text(help_text, parse_mode='HTML', disable_web_page_preview=True)
 
-def start_command(update: Update, context: CallbackContext) -> None:
-    """Send a concise welcome message with buttons and handle button presses."""
-    user = update.effective_user
-    welcome_message = f"Hey {user.username}! I'm Ares, your AI companion. Ready to chat? "
+def start(update: Update, context: CallbackContext) -> None:
+    user = update.message.from_user
+    username = user.first_name if user.first_name else user.username if user.username else "there"
 
-    # Create the keyboard layout
+    welcome_message = f"Hello {username}! I'm Ares, your AI assistant. How can I help you today?"
+
     keyboard = [
-        [KeyboardButton('/help'), KeyboardButton('Contact Owner')]
+        [InlineKeyboardButton("Help", callback_data='help')],
+        [InlineKeyboardButton("Contact Owner", callback_data='contact')]
     ]
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
+    reply_markup = InlineKeyboardMarkup(keyboard)
 
-    # Update handler for button presses (using CallbackQueryHandler)
-    @context.dispatcher.message_handler(filters.CallbackQuery)
-    def button_callback(update: Update, context: CallbackContext):
-        query = update.callback_query
-        if query.data == '/help':
-            # Trigger /help command logic
-            help_command(update, context)
-        elif query.data == 'Contact Owner':
-            # Open your Telegram link (replace with your actual link)
-            owner_link = "https://t.me/your_telegram_username"  # Replace with your Telegram username
-            query.answer(text=f"Opening Telegram contact: {owner_link}")
-            context.bot.send_message(chat_id=query.message.chat_id, text=owner_link)
-        else:
-            query.answer(text="Invalid option. Please try again.")
-        query.edit_message_reply_markup(reply_markup=None)  # Remove the keyboard after selection
+    update.message.reply_text(welcome_message, reply_markup=reply_markup)
 
-    update.message.reply_text(welcome_message, reply_markup=reply_markup, parse_mode='HTML')
+def button(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query
+    query.answer()
 
+    if query.data == 'help':
+        help_message = help_text
+        query.edit_message_text(text=help_message, parse_mode='HTML')
+    elif query.data == 'contact':
+        contact_message = "You can contact the owner at @Rkgroup5316. or join https://t.me/AresChatBotAi for info and bug reports ."
+        query.edit_message_text(text=contact_message)
 
 def clear_history(update: Update, context: CallbackContext) -> None:
     """Clear the chat history for the current chat."""
@@ -324,24 +318,38 @@ def clear_history(update: Update, context: CallbackContext) -> None:
 
 
 def history(update: Update, context: CallbackContext) -> None:
-    """Clear the chat history for the current chat."""
+    args = context.args
     chat_id = update.message.chat_id
 
     try:
-        if chat_id in chat_histories:
-            # Clear the chat history and start a new one with the default prompt
-            history = f"Chat history: \n{chat_histories[chat_id].history}"
-            chunks = textwrap.wrap(history, width=100 * 4, replace_whitespace=False)  # ~400 characters
-            for chunk in chunks:
-                update.message.reply_text(chunk, parse_mode='html')
+        if args:
+            # If argument is provided, check if it's a valid chat ID
+            try:
+                arg_chat_id = int(args[0])
+            except ValueError:
+                update.message.reply_text("Invalid chat ID. Please provide a valid integer ID.")
+                return
 
-
+            if arg_chat_id in chat_histories:
+                # If provided chat ID is in active sessions, retrieve its history
+                history_text = f"Chat history for chat ID {arg_chat_id}:\n{chat_histories[arg_chat_id].history}"
+                chunks = textwrap.wrap(history_text, width=100 * 4, replace_whitespace=False)  # ~400 characters
+                for chunk in chunks:
+                    update.message.reply_text(chunk, parse_mode='html')
+            else:
+                update.message.reply_text("Error 404: Chat ID not found.")
         else:
-            update.message.reply_text("There is no chat history.")
+            # If no argument is provided, retrieve history for the current session chat
+            if chat_id in chat_histories:
+                history_text = f"Chat history:\n{chat_histories[chat_id].history}"
+                chunks = textwrap.wrap(history_text, width=100 * 4, replace_whitespace=False)  # ~400 characters
+                for chunk in chunks:
+                    update.message.reply_text(chunk, parse_mode='html')
+            else:
+                update.message.reply_text("There is no chat history.")
     except Exception as e:
-        update.message.reply_text(f"An error occurred while reterving the chat history: {e}")
-        logger.error(f"An error occurred while reterving the chat history: {e}")
-
+        update.message.reply_text(f"An error occurred while retrieving the chat history: {e}")
+        logger.error(f"An error occurred while retrieving the chat history: {e}")
 
 def process_image(update: Update, context: CallbackContext) -> None:
     chat_id = update.message.chat_id
@@ -388,10 +396,27 @@ def process_image(update: Update, context: CallbackContext) -> None:
     threading.Thread(target=handle_image).start()
 
 def Token(update: Update, context: CallbackContext) -> None:
+    args = context.args
     chat_id = update.message.chat_id
-    chat_session =get_chat_history(chat_id)
 
-    update.message.reply_text(f'Total token used: {model.count_tokens(chat_session.history)}',parse_mode='html')
+    if args:
+        # If argument is provided, check if it's a valid chat ID
+        try:
+            arg_chat_id = int(args[0])
+        except ValueError:
+            update.message.reply_text("Invalid chat ID. Please provide a valid integer ID.")
+            return
+
+        if arg_chat_id in chat_histories:
+            # If provided chat ID is in active sessions, retrieve its token count
+            chat_session = chat_histories[arg_chat_id]
+            update.message.reply_text(f'Total tokens used for chat ID {arg_chat_id}: {model.count_tokens(chat_session.history)}', parse_mode='html')
+        else:
+            update.message.reply_text("Error 404: Chat ID not found.")
+    else:
+        # If no argument is provided, retrieve token count for the current session chat
+        chat_session = get_chat_history(chat_id)
+        update.message.reply_text(f'Total tokens used in current session: {model.count_tokens(chat_session.history)}', parse_mode='html')
 
 def session_command(update: Update, context: CallbackContext) -> None:
     """Reports the total number of open chat sessions after password check."""
@@ -411,6 +436,25 @@ def session_command(update: Update, context: CallbackContext) -> None:
     else:
         session_message = f"There are currently <b>{total_sessions}</b> active chat sessions."
         update.message.reply_text(session_message, parse_mode='html')
+      
+def session_info_command(update: Update, context: CallbackContext) -> None:
+    """Reports the list of chat IDs for active chat sessions after password check."""
+    args = context.args
+
+    if not args:  # No arguments provided
+        update.message.reply_text("Access denied. Please provide the password: `/session_info [password]`")
+        return
+
+    if len(args) != 1 or args[0] != PASSWORD:  # Incorrect password or extra arguments
+        update.message.reply_text("Access denied. Incorrect password.", parse_mode='html')
+        return
+
+    active_chat_ids = list(chat_histories.keys())  # Get the list of chat IDs for active chat sessions
+    if not active_chat_ids:
+        update.message.reply_text("There are no active chat sessions.", parse_mode='html')
+    else:
+        session_message = f"The active chat sessions have the following chat IDs: {', '.join(str(chat_id) for chat_id in active_chat_ids)}"
+        update.message.reply_text(session_message, parse_mode='html')
 
 def main() -> None:
     logger.info("Bot starting!")
@@ -427,12 +471,14 @@ def main() -> None:
 
     # Register the help command handler
     dispatcher.add_handler(CommandHandler("help", help_command))
-    dispatcher.add_handler(CommandHandler("start", start_command))
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CallbackQueryHandler(button))
     dispatcher.add_handler(CommandHandler("history", history))
 
     # Register the help command handler
     dispatcher.add_handler(CommandHandler("token", Token))
     dispatcher.add_handler(CommandHandler("session", session_command))
+    dispatcher.add_handler(CommandHandler("session_info", session_info_command))
 
 
     # Register the ChangePrompt command handler
