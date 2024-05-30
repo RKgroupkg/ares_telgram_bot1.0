@@ -381,7 +381,6 @@ def history(update: Update, context: CallbackContext) -> None:
 
             if arg_chat_id in chat_histories:
                 # If provided chat ID is in active sessions, retrieve its history
-                history_text = f"Chat history for chat ID {arg_chat_id}:\n{chat_histories[arg_chat_id].history}"
                 history_text = f"Chat historyfor chat ID {arg_chat_id}:\n{format_chat_history(chat_histories[chat_id].history)}"
                 send_message(update,history_text)
             else:
