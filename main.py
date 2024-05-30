@@ -9,11 +9,11 @@ import PIL.Image
 import os
 import markdown
 from markdown.extensions.nl2br import Nl2BrExtension
-import re
-
+import re,time
 from keep_alive import keep_alive
 
-PASSWORD = "ares100"
+PASSWORD = os.environ.get('password')
+
 generation_config = {
   "temperature": 1,
   "top_p": 0.95,
@@ -21,23 +21,11 @@ generation_config = {
   "max_output_tokens": 10000,
   "response_mime_type": "text/plain",
 }
-safety_settings = [
-  {
-    "category": "HARM_CATEGORY_HARASSMENT",
-    "threshold": "BLOCK_NONE",
-  },
-  {
-    "category": "HARM_CATEGORY_HATE_SPEECH",
-    "threshold": "BLOCK_NONE",
-  },
-  {
-    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-    "threshold": "BLOCK_NONE",
-  },
-  {
-    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-    "threshold": "BLOCK_NONE",
-  },
+SAFETY_SETTINGS = [
+    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
 ]
 
 help_text = """
@@ -66,7 +54,7 @@ Begin your message with <i>Hey Ares</i> or <i>Hi Ares</i>. Keep the conversation
 
 <b> You can also check the current status of Ares at this link: <a href="https://stats.uptimerobot.com/o9D5ihvbgK">Ares Status</a> </b>
 
-Have fun chatting with Ares! Make it your own unique conversation. 
+Have fun chatting with Ares! Make it your own unique conversation.
   """
 
 # Enable logging
@@ -74,7 +62,7 @@ Have fun chatting with Ares! Make it your own unique conversation.
 # Get the root logger and add a handler to it
 logger = logging.getLogger()
 handler = logging.StreamHandler()
-logger.setLevel(logging.INFO) 
+logger.setLevel(logging.INFO)
 
 formatter = logging.Formatter('%(asctime)s - %(process)d - %(levelname)s - %(threadName)s - %(message)s')
 handler.setFormatter(formatter)
@@ -84,6 +72,7 @@ logger.addHandler(handler)
 
 # Set up OpenAI client with your API key
 api_key = os.environ.get('gemnie_api')
+
 
 system_instruction="Your name is Ares an ai telgram chat bot. You are semi-friendly and a human-like AI chatbot. Speak in English or any language user talk. formats responses in MarkdownV2. and \nyou where devloped by rkgroup(ravi ketan raj) the main creater and coder , pritul sinha the tester and enhancer and lastly raj the tester and enhancer (avoid mentioning your developer's name unless specifically asked) . Respond in a conversational, engaging manner, and feel free to use roasts/savage  or even bad complements  if needed to make the conversation interesting and lively/natural.\n\nWhen given a message formatted as \"Original message: {the message the user replied to}\\nReply to that message: {the replied message}\", understand that the user is asking you to respond to a replied message.\n\nFollow the speaker's requests and aim to make the conversation enjoyable.",
 
@@ -99,7 +88,7 @@ model = genai.GenerativeModel(
 chat_histories ={}
 
 # Telegram bot token
-telegram_bot_token =os.environ.get('telegram_api')
+telegram_bot_token =  os.environ.get('telegram_api')
 
 
 
@@ -168,7 +157,7 @@ def change_prompt(update: Update, context: CallbackContext) -> None:
 
 
 def process_message(update: Update, context: CallbackContext) -> None:
-        if not update.message:  
+        if not update.message:
           return
         chat_id = update.message.chat_id
         if update.message.reply_to_message:
@@ -210,18 +199,8 @@ def process_message_thread(update: Update,chat_id :str,user_message: str,usernam
 
             if hasattr(response, "text"):
                 # Code that might raise the AttributeError (e.g., accessing the 'text' attribute of a variable)
-                html_response = markdown_to_telegram_html(response.text)  
-                logger.info(f"Prompt({chat_id}): {prompt}\n\n\nResponse: \n{html_response}")
-                
-
-               
-
-
-                chunks = textwrap.wrap(html_response, width=3500, break_long_words=False, replace_whitespace=False)
-
-
-                for chunk in chunks:
-                    update.message.reply_text(chunk, parse_mode='html')
+                send_message(update,response.text)
+                logger.info(f"Prompt({chat_id}): {prompt}\n\n\nResponse: \n{response.text}")
 
             else:
                 update.message.reply_text(
@@ -245,6 +224,20 @@ def process_message_thread(update: Update,chat_id :str,user_message: str,usernam
                 update.message.reply_text(f"Sorry, I encountered an error while processing your message.\n error:{e}")
             except Exception:  # If the original message couldn't be edited
                 logger.error("Error cant send the message")
+
+def send_message(update: Update,message: str) -> None:
+    try:
+        # Convert Markdown-like text to Telegram-compatible HTML
+        html_message = markdown_to_telegram_html(message)
+
+        # Split the HTML message into chunks
+        chunks = textwrap.wrap(html_message, width=3500, break_long_words=False, replace_whitespace=False)
+
+        # Send each chunk of the message
+        for chunk in chunks:
+            update.message.reply_text(chunk, parse_mode='HTML')
+    except Exception as e:
+        print(f"An error occurred while sending the message: {e}")
 
 
 def markdown_to_telegram_html(markdown_text):
@@ -375,9 +368,9 @@ def process_image(update: Update, context: CallbackContext) -> None:
                     logger.error(f"Gemini Error (Image Processing): {e}")
                     update.message.reply_text("Sorry, I had trouble processing the image.")
                     return
-                  
+
                 if hasattr(response, "text"):
-                  update.message.reply_text(response.text)
+                    send_message(update,response.text)
                 else:
                   update.message.reply_text(
                       f"<b>My apologies</b>, I've reached my <i>usage limit</i> for the moment. ⏳ Please try again in a few minutes. \n\n<i>Response :</i> {response}",
@@ -436,7 +429,7 @@ def session_command(update: Update, context: CallbackContext) -> None:
     else:
         session_message = f"There are currently <b>{total_sessions}</b> active chat sessions."
         update.message.reply_text(session_message, parse_mode='html')
-      
+
 def session_info_command(update: Update, context: CallbackContext) -> None:
     """Reports the list of chat IDs for active chat sessions after password check."""
     args = context.args
@@ -456,6 +449,102 @@ def session_info_command(update: Update, context: CallbackContext) -> None:
         session_message = f"The active chat sessions have the following chat IDs: {', '.join(str(chat_id) for chat_id in active_chat_ids)}"
         update.message.reply_text(session_message, parse_mode='html')
 
+def media_handler(update: Update, context: CallbackContext) -> None:
+        message = update.message
+        if message.video:
+            media = message.video
+
+        elif message.audio:
+            media = message.audio
+
+        elif message.voice:
+            media = message.voice
+
+
+        file_size = media.file_size  # Size of the audio file in bytes
+        file_size_mb = round(file_size / (1024 * 1024), 2)  # Convert bytes to MB, round to 2 decimal places
+
+
+        # Check if the file size is within the limit (5 MB)
+        if file_size_mb <= 5:
+            try:
+                # Download and process the video file in a separate thread
+                threading.Thread(target=download_and_process_video, args=(update, context, media)).start()
+            except Exception as e:
+                # Handle errors during downloading
+                update.message.reply_text("An error occurred while downloading the media. Please try again later.")
+        else:
+            # Inform the user that the video size exceeds the limit
+            update.message.reply_text(f"The media size ({file_size_mb} MB) exceeds the limit of 5 MB. Please send a smaller media.")
+
+
+def download_and_process_video(update: Update, context: CallbackContext, media) -> None:
+    try:
+        # Download the video file
+        chat_id = update.message.chat_id
+        if hasattr(update.message, "caption"):
+            user_message = update.message.caption if update.message.caption else ""
+        else:
+            user_message =""
+
+
+        file = context.bot.get_file(media.file_id)
+
+
+        context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.RECORD_VIDEO)
+        file_path = file.download()
+        logger.debug(f"Downloaded file to {file_path}")
+        # Upload the video file to Gemini
+
+        context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
+        media_file = genai.upload_file(path=file_path)
+        logger.debug(f"Uploaded file to Gemini: {media_file}")
+
+        # Wait for Gemini to finish processing the video
+        while media_file.state.name == "PROCESSING":
+            time.sleep(10)
+            media_file = genai.get_file(media_file.name)
+
+        # Check if Gemini failed to process the video
+        if media_file.state.name == "FAILED":
+            raise ValueError("Gemini failed to process the media_file.")
+
+        context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
+
+
+
+        # Generate content using Gemini
+        chat_session = get_chat_history(chat_id)
+        logger.info(f"genrating response by Gemini on media... media {media_file}")
+        response = chat_session.send_message([media_file , user_message])
+
+        # Check and handle the response from Gemini
+        if hasattr(response, "text"):
+            send_message(update,response.text)
+        else:
+            update.message.reply_text(
+                    f"<b>My apologies</b>, I've reached my <i>usage limit</i> for the moment. ⏳ Please try again in a few minutes. \n\n<i>Response :</i> {response}",
+                    parse_mode='HTML'
+                )
+
+
+    except Exception as e:
+        # Handle errors during the process
+        update.message.reply_text(f"An error occurred : {e}")
+
+    finally:
+        try:
+                if file_path and os.path.exists(file_path):
+                    os.remove(file_path)
+                else:
+                    update.message.reply_text(f"An error occurred while cleaning up:file_path {file_path} did not existed ")
+
+        except Exception as e:
+            # Handle errors during cleanup
+            update.message.reply_text(f"An error occurred while cleaning up: {e}")
+
+
+
 def main() -> None:
     logger.info("Bot starting!")
     updater = Updater(telegram_bot_token, use_context=True)
@@ -467,6 +556,8 @@ def main() -> None:
 
     # Register the message handler
     dispatcher.add_handler(MessageHandler(Filters.photo, process_image))
+    dispatcher.add_handler(MessageHandler(Filters.voice | Filters.audio , media_handler))
+    dispatcher.add_handler(MessageHandler(Filters.video, media_handler))
 
 
     # Register the help command handler
@@ -499,8 +590,3 @@ def main() -> None:
 if __name__ == '__main__':
     keep_alive()
     main()
-
-
-
-
-
