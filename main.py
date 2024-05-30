@@ -1,5 +1,5 @@
 import logging
-from telegram import Update,ChatAction # version = 12.8
+from telegram import Update,ChatAction,ReplyKeyboardMarkup,KeyboardButton # version = 12.8
 from telegram.ext import Updater, MessageHandler, Filters, CallbackContext,CommandHandler
 import google.generativeai as genai
 import threading
@@ -140,7 +140,9 @@ def change_prompt(update: Update, context: CallbackContext) -> None:
 
 
 def process_message(update: Update, context: CallbackContext) -> None:
-        chat_id = update.message.chat_id
+        if not update.message  # for some weird behaviour of telegram api 
+          return
+  
         if update.message.reply_to_message:
             reply_to_bot = (
             update.message.reply_to_message
@@ -242,9 +244,9 @@ def markdown_to_telegram_html(markdown_text):
 
 
 def help_command(update: Update, context: CallbackContext) -> None:
-    """Send a well-formatted help message with a link to Gemini."""
+  """Send a well-formatted help message with links to Gemini and Ares status."""
 
-    help_text = """
+  help_text = """
 <b>This bot is powered by <a href="https://gemini.google.com/">Gemini</a> and is ready to assist you!</b>
 
 <code> By default, the bot (Ares) is a bit cheeky and enjoys playful banter. If you prefer a different style, feel free to customize it!</code>
@@ -255,7 +257,7 @@ Begin your message with <i>Hey Ares</i> or <i>Hi Ares</i>. Keep the conversation
 
 <b>Tailor Your Experience:</b>
 
-* <i>/changeprompt [new prompt]</i>:  Give Ares a new personality. Try "Be kind and helpful" or "d" for the default sassy mode.
+* <i>/changeprompt [new prompt]</i>: Give Ares a new personality. Try "Be kind and helpful" or "d" for the default sassy mode.
 * <i>/token</i>: Check how many tokens have been used.
 * <i>/clear_history</i>: Wipe the slate clean and start fresh.
 * <i>/history</i>: ⚠️ Use with caution, as it might crash with long chats.
@@ -265,57 +267,51 @@ Begin your message with <i>Hey Ares</i> or <i>Hi Ares</i>. Keep the conversation
 * <i>/session [password]</i>: Peek at how many chats are active.
 
 <i>More exciting features are on the way!</i>
-Have fun chatting with Ares! Make it your own unique conversation. 😉
-"""
-    logger.info(f"help command asked by :{update.message.from_user.username}")
-    update.message.reply_text(help_text, parse_mode='HTML', disable_web_page_preview=True)
+
+**Check Ares' Status:**
+
+You can also check the current status of Ares at this link: [**<a href="https://stats.uptimerobot.com/o9D5ihvbgK">Ares Status</a>**](https://stats.uptimerobot.com/o9D5ihvbgK)
+
+Have fun chatting with Ares! Make it your own unique conversation. 
+  """
+
+  logger.info(f"help command asked by :{update.message.from_user.username}")
+  update.message.reply_text(help_text, parse_mode='HTML', disable_web_page_preview=True)
 
 def start_command(update: Update, context: CallbackContext) -> None:
-    """Send a message when the command /start is issued."""
+    """Send a concise welcome message with buttons and handle button presses."""
     user = update.effective_user
-    welcome_message = ("""
-<b>Greetings, Earthling!</b> 👋
+    welcome_message = f"Hey {user.username}!  I'm Ares, your AI companion. Ready to chat? "
 
-I am <strong>Ares</strong>, your AI companion, forged in the digital fires of <em>RK Group</em>. 🔥  I'm here to make your day a bit more interesting with witty banter, insightful answers, and maybe even a playful roast or two. 😉
+    # Create the keyboard layout
+    keyboard = [
+        [KeyboardButton('/help'), KeyboardButton('Contact Owner')]
+    ]
+    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
 
-<b>Let's Chat!</b>
+    # Update handler for button presses
+    @context.dispatcher.callback_query_handler(run_async=True)
+    def button_callback(update: Update, context: CallbackContext):
+        query = update.callback_query
+        if query.data == '/help':
+            # Trigger /help command logic
+            help_command(update, context)
+        elif query.data == 'Contact Owner':
+            # Open your Telegram link (replace with your actual link)
+            owner_link = "https://t.me/your_telegram_username"  # Replace with your Telegram username
+            query.answer(text=f"Opening Telegram contact: {owner_link}")
+            context.bot.send_message(chat_id=query.message.chat_id, text=owner_link)
+        else:
+            query.answer(text="Invalid option. Please try again.")
+        query.edit_message_reply_markup(reply_markup=None)  # Remove the keyboard after selection
 
-* <b>Spark the Conversation:</b> Just start by saying <i>"Hey Ares,"</i> <i>"Hi Ares,"</i> or simply <i>"Ares"</i>.
-* <b>Keep it Clear:</b> I'm still learning the nuances of human language, so please be patient and use concise English.
-* <b>Reply with Ease:</b> Want to respond to something I said? Just reply directly to that message!
+    update.message.reply_text(welcome_message, reply_markup=reply_markup, parse_mode='HTML')
 
-<b>Explore My Arsenal</b>
-
-* <b>/changeprompt [new prompt]:</b> Feeling adventurous? Give me a new personality! Try <i>"Be kind and supportive"</i> or <i>"d"</i> to return to my default playful mode.
-* <b>/token:</b> Curious about the words we've exchanged? This command reveals our token count.
-* <b>/clear_history:</b> Time for a fresh start? Erase our chat history with this command.
-* <b>/history:</b>  Relive our entire conversation! 📜  (But be warned, this might cause a crash if we've been chatting a lot.)
-
-<b>Admin Access (Password Protected)</b>
-
-* <b>/session [password]:</b> Hey admins, this command shows you the number of active chats.
-
-<b>Just for Fun!</b>
-
-Ask me to tell you a joke, compose a poem, or summarize a complex article. I'm eager to explore my abilities, so don't hesitate to experiment!
-
-<b>Powered by Gemini Pro</b>
-
-Under the hood, I'm driven by the mighty <b>Gemini Pro</b>, Google's cutting-edge AI model. It's designed to understand and respond to language with remarkable fluency and even generate captivating images. 🎨
-
-<b>Remember:</b> Even with the brilliance of Gemini Pro, I'm still under development and constantly learning. Please be understanding if I make mistakes, and feel free to provide feedback so I can improve!
-
-Let the conversation begin! 🚀
-"""
-    )
-    update.message.reply_text(welcome_message, parse_mode='html')
-    # You can add any other initial actions you want here, like sending a help message
 
 def clear_history(update: Update, context: CallbackContext) -> None:
     """Clear the chat history for the current chat."""
-    chat_id = update.message.chat_id
-
-    try:
+     try:
+        chat_id = update.message.chat_id
         if chat_id in chat_histories:
             # Clear the chat history and start a new one with the default prompt
             chat_histories[chat_id] = model.start_chat(history=[])
@@ -371,8 +367,15 @@ def process_image(update: Update, context: CallbackContext) -> None:
                     logger.error(f"Gemini Error (Image Processing): {e}")
                     update.message.reply_text("Sorry, I had trouble processing the image.")
                     return
-
-                update.message.reply_text(response.text)
+                  
+                if hasattr(response, "text"):
+                  update.message.reply_text(response.text)
+                else:
+                  update.message.reply_text(
+                      f"<b>My apologies</b>, I've reached my <i>usage limit</i> for the moment. ⏳ Please try again in a few minutes. \n\n<i>Response :</i> {response}",
+                      parse_mode='HTML'
+                  )
+                  logger.error(f"quato error!\n\nreponse:{response}")
 
                 os.remove(file_path)
         except (PIL.UnidentifiedImageError, FileNotFoundError) as e:
