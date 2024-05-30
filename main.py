@@ -183,30 +183,23 @@ def generate_response(chat_id, input_text: str) -> str:
 def change_prompt(update: Update, context: CallbackContext) -> None:
     """Change the prompt for generating responses."""
     chat_id = update.message.chat_id
-    global model
     new_promt = " ".join(context.args)
     logger.info(f"chatId({chat_id}) changed its Promt to :'{new_promt}'")
     if new_promt :
         print(f"arg in lower case :{context.args[0].lower()} is it command? :{context.args[0].lower() == 'd'} ")
         if  context.args[0].lower() == 'd':
-           model_temp = genai.GenerativeModel(
-                    model_name="gemini-1.5-pro-latest",
-                    safety_settings=safety_settings,
-                    generation_config=generation_config,
-                    system_instruction=system_instruction
-                    )
-    
-           chat_histories[chat_id] = model_temp_.start_chat(history=[])
+        
+           chat_histories[chat_id] = model.start_chat(history=[])
            update.message.reply_text(f"The prompt has been successfully changed to: <b>'defult'</b>", parse_mode='html')
     
             
         else:
-                model_temp_ = genai.GenerativeModel(
+                model_temp = genai.GenerativeModel(
                     model_name="gemini-1.5-pro-latest",
                     safety_settings=safety_settings,
                     generation_config=generation_config,
                     system_instruction=new_promt )
-                chat_histories[chat_id] = model_temp_.start_chat(history=[])
+                chat_histories[chat_id] = model_temp.start_chat(history=[])
     
                 update.message.reply_text(f"The prompt has been successfully changed to: <b>'{new_promt}'</b>", parse_mode='html')
     else:
