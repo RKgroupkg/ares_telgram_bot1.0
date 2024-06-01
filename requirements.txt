@@ -4,3 +4,5 @@ Pillow
 colorama  
 Markdown  
 Flask
+firebase_admin
+jsonpickle
